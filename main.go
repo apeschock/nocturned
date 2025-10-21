@@ -122,7 +122,7 @@ func main() {
 
 	btManager, err := bluetooth.NewBluetoothManager(wsHub)
 	if err != nil {
-		log.Fatal("Failed to initialize bluetooth manager:", err)
+		log.Printf("Failed to initialize bluetooth manager:", err)
 	}
 
 	if err := utils.InitBrightness(); err != nil {
