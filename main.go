@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -118,11 +119,18 @@ func networkChecker(hub *utils.WebSocketHub) {
 var currentNetworkStatus = "offline"
 
 func main() {
+	bypassBluetoothRequirement := flag.Bool("bypassBluetoothRequirement", false, "Bypass the requirement to have an active bluetooth adapter.")
+	flag.Parse()
+
 	wsHub := utils.NewWebSocketHub()
 
 	btManager, err := bluetooth.NewBluetoothManager(wsHub)
 	if err != nil {
-		log.Printf("Failed to initialize bluetooth manager:", err)
+		if *bypassBluetoothRequirement {
+			log.Printf("Failed to initialize bluetooth manager - Bypassed")
+		} else {
+			log.Fatal("Failed to initialize bluetooth manager:", err)
+		}
 	}
 
 	if err := utils.InitBrightness(); err != nil {

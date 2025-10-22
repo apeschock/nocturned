@@ -1,6 +1,7 @@
 package bluetooth
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -14,6 +15,8 @@ import (
 
 	"github.com/usenocturne/nocturned/utils"
 )
+
+const bluetoothUnavailableMsg string = "bluetooth is not available"
 
 type BluetoothManager struct {
 	conn               *dbus.Conn
@@ -104,6 +107,10 @@ func findDefaultAdapter(conn *dbus.Conn) (dbus.ObjectPath, error) {
 }
 
 func (m *BluetoothManager) monitorDisconnects() {
+	if m == nil {
+		return
+	}
+
 	if err := m.conn.AddMatchSignal(
 		dbus.WithMatchInterface("org.freedesktop.DBus.Properties"),
 		dbus.WithMatchMember("PropertiesChanged"),
@@ -161,6 +168,10 @@ func (m *BluetoothManager) monitorDisconnects() {
 }
 
 func (m *BluetoothManager) monitorNetworkInterfaces() {
+	if m == nil {
+		return
+	}
+
 	linkUpdates := make(chan netlink.LinkUpdate)
 	done := make(chan struct{})
 
@@ -185,12 +196,20 @@ func (m *BluetoothManager) monitorNetworkInterfaces() {
 }
 
 func (m *BluetoothManager) setPower(enable bool) error {
+	if m == nil {
+		return errors.New(bluetoothUnavailableMsg)
+	}
+
 	obj := m.conn.Object(BLUEZ_BUS_NAME, m.adapter)
 	return obj.Call("org.freedesktop.DBus.Properties.Set", 0,
 		BLUEZ_ADAPTER_INTERFACE, "Powered", dbus.MakeVariant(enable)).Err
 }
 
 func (m *BluetoothManager) SetDiscoverable(enable bool) error {
+	if m == nil {
+		return errors.New(bluetoothUnavailableMsg)
+	}
+
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -211,6 +230,10 @@ func formatDevicePath(adapter dbus.ObjectPath, address string) dbus.ObjectPath {
 }
 
 func (m *BluetoothManager) GetDeviceInfo(address string) (*utils.BluetoothDeviceInfo, error) {
+	if m == nil {
+		return nil, errors.New(bluetoothUnavailableMsg)
+	}
+
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -265,6 +288,10 @@ func (m *BluetoothManager) GetDeviceInfo(address string) (*utils.BluetoothDevice
 }
 
 func (m *BluetoothManager) RemoveDevice(address string) error {
+	if m == nil {
+		return errors.New(bluetoothUnavailableMsg)
+	}
+
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -275,10 +302,18 @@ func (m *BluetoothManager) RemoveDevice(address string) error {
 }
 
 func (m *BluetoothManager) AcceptPairing() error {
+	if m == nil {
+		return errors.New(bluetoothUnavailableMsg)
+	}
+
 	return m.agent.AcceptPairing()
 }
 
 func (m *BluetoothManager) DenyPairing() error {
+	if m == nil {
+		return errors.New(bluetoothUnavailableMsg)
+	}
+
 	return m.agent.RejectPairing()
 }
 
@@ -286,10 +321,15 @@ func (m *BluetoothManager) GetCurrentPairingRequest() *utils.PairingRequest {
 	if m.agent == nil {
 		return nil
 	}
+
 	return m.agent.current
 }
 
 func (m *BluetoothManager) ConnectNetwork(address string) error {
+	if m == nil {
+		return errors.New(bluetoothUnavailableMsg)
+	}
+
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -318,6 +358,10 @@ func (m *BluetoothManager) ConnectNetwork(address string) error {
 }
 
 func (m *BluetoothManager) GetDevices() ([]utils.BluetoothDeviceInfo, error) {
+	if m == nil {
+		return nil, errors.New(bluetoothUnavailableMsg)
+	}
+
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -380,6 +424,10 @@ func (m *BluetoothManager) GetDevices() ([]utils.BluetoothDeviceInfo, error) {
 }
 
 func (m *BluetoothManager) ConnectDevice(address string) error {
+	if m == nil {
+		return errors.New(bluetoothUnavailableMsg)
+	}
+
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -419,6 +467,10 @@ func (m *BluetoothManager) ConnectDevice(address string) error {
 }
 
 func (m *BluetoothManager) DisconnectDevice(address string) error {
+	if m == nil {
+		return errors.New(bluetoothUnavailableMsg)
+	}
+
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
